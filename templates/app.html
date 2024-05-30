@@ -1,0 +1,114 @@
+{{ define "index" }}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Fotbroms</title>
+    <script
+      src="https://unpkg.com/htmx.org@1.9.12"
+      integrity="sha384-ujb1lZYygJmzgSwoxRggbCHcjc0rB2XoQrxeTUQyRjrOnlCoYta87iKBWq3EsdM2"
+      crossorigin="anonymous"
+    ></script>
+    <script src="/scripts/components/upload-area.js"></script>
+    <style>
+      body {
+        font-family: system-ui, sans-serif;
+      }
+    </style>
+    <noscript>
+      <style>
+        [hx-trigger] {
+          display: none;
+        }
+      </style>
+    </noscript>
+  </head>
+  <body>
+    <header>
+      <h1>Fotbroms 🎬</h1>
+    </header>
+
+    <main>
+      <div id="video">
+        {{ if .VideoPath }}
+          {{ template "video" . }}
+        {{ else }}
+        <form action="/" method="post" enctype="multipart/form-data">
+          <upload-area
+            name="video"
+            accepts="video/mp4,.pdf"
+            hx-trigger="fileuploaded"
+            hx-target="#video"
+            hx-get="/video"
+          >
+            <h1>Drop your video here</h1>
+          </upload-area>
+
+          <noscript>
+            <input type="file" name="video" />
+            <button type="submit">Upload</button>
+          </noscript>
+        </form>
+        {{ end }}
+      </div>
+    </main>
+
+    <footer>
+      <p>&copy; 2024</p>
+    </footer>
+
+    <script>
+      const ua = document.querySelector("upload-area");
+
+      ua.addEventListener("fileprogress", (e) => {
+        let progress = e.target.querySelector("progress");
+        if (!progress) {
+          progress = document.createElement("progress");
+          progress.setAttribute("max", 100);
+          e.target.appendChild(progress);
+        }
+        progress.value = event.detail;
+      });
+
+      ua.addEventListener("fileuploading", (e) => {
+        e.target.setAttribute("disabled", "disabled");
+      });
+
+      ua.addEventListener("fileenter", (e) => {
+        e.target.closest("form").style.background = e.detail.accepted
+          ? "lightgreen"
+          : "salmon";
+      });
+
+      ua.addEventListener("fileleave", (e) => {
+        e.target.closest("form").style.background = "transparent";
+      });
+    </script>
+
+    <style>
+      upload-area {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+        border: 1px dashed #ccc;
+
+        width: 100%;
+        min-height: 100px;
+
+        padding: 1rem;
+      }
+
+      upload-area h1 {
+        margin: 0;
+      }
+    </style>
+  </body>
+</html>
+{{ end }} {{ define "video" }}
+<h1>Video uploaded</h1>
+<p>{{ .VideoName }}</p>
+<p>{{ .VideoPath }}</p>
+{{ end }}
